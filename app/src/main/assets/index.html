@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0e1116">
+<meta name="theme-color" content="#cdeee0">
 <title>Cash Flow Tracker</title>
 <style>
-:root{--bg:#0e1116;--card:#171c24;--card2:#1e2530;--line:#2a3340;--tx:#e8edf4;--mut:#8b97a8;--acc:#3ddc97;--acc2:#1b3d31;--bad:#ff6b6b;--inv:#5b8cff;--emg:#f5b74a;--per:#c77dff;--hh:#2ec4a0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:root{--bg:#f3f7f5;--card:#ffffff;--card2:#eaf1ee;--line:#d3dfd9;--tx:#14221f;--mut:#5b6e68;--acc:#0f8f6b;--acc2:#d7f1e6;--bad:#d64545;--inv:#7c5cf0;--emg:#f0a30a;--per:#e8466a;--hh:#1e9be0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;max-width:760px;margin:0 auto;padding-top:env(safe-area-inset-top,0px)}
@@ -54,6 +54,35 @@ label{font-size:.8rem;color:var(--mut)}
 #toast{position:fixed;left:50%;bottom:calc(80px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#000d;color:#fff;border:1px solid var(--line);padding:10px 16px;border-radius:24px;font-size:.88rem;z-index:60;display:none;max-width:90%;text-align:center}
 .chip{font-size:.7rem;padding:2px 8px;border-radius:10px;background:var(--card2);color:var(--mut)}
 @media(min-width:600px){#modal{align-items:center}.sheet{border-radius:20px}}
+body{font-variant-numeric:tabular-nums}
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px}.mnav b{font-size:1.02rem}
+.donut{position:relative;width:min(76vw,290px);margin:4px auto 14px}.donut svg{width:100%;display:block}
+.dc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 21%}.dc .big{font-size:1.3rem;margin:2px 0}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.tile{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;color:var(--tx);min-height:120px;display:block;width:100%;font:inherit}
+.tile:active{transform:scale(.98);background:var(--card2)}
+.tile .ic{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;margin-bottom:8px}
+.tile .v{font-weight:700;margin-top:2px;word-break:break-word}
+.amt{font-size:1.8rem;font-weight:700;min-height:60px}
+.brand{text-align:center;padding:26px 0 14px}.brand h1{margin:10px 0 2px;font-size:1.4rem}
+:root{--tone:#cdeee0;--ink:#12403a}
+#app{padding-top:0;background:var(--bg)}
+header{padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;background:var(--tone);border-radius:0 0 22px 22px}
+header h1{background:var(--ink);color:#fff;padding:7px 14px;border-radius:10px;font-size:1.05rem}
+main{padding-top:14px}
+h2{display:inline-block;background:var(--ink);color:#fff;padding:6px 12px;border-radius:8px;font-size:.88rem;margin:14px 0 10px}
+.card>b:first-child{display:inline-block;background:var(--tone);color:var(--ink);padding:5px 11px;border-radius:8px;margin-bottom:4px}
+.card,.tile{box-shadow:0 1px 3px #12403a14}
+.btn.p,.fab{background:#0f8f6b;border-color:#0f8f6b;color:#fff}
+.btn.d{border-color:#f0c4c4;background:#fff}
+.pos{color:#0b8a65}.neg{color:var(--bad)}
+.brand{background:var(--tone);margin:-14px -16px 16px;padding:calc(26px + env(safe-area-inset-top,0px)) 16px 22px;border-radius:0 0 26px 26px}
+nav{box-shadow:0 -1px 6px #12403a12}
+nav button.on{color:#0b8a65;font-weight:700}
+.av{background:var(--tone);color:var(--ink)}
+.chip{background:#fff;color:var(--ink)}
+#modal{background:#12403a99}
+.mnav b{background:#fff;padding:6px 14px;border-radius:20px;border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -70,6 +99,8 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const B={inv:{n:'Investments',c:'var(--inv)',s:1},emg:{n:'Emergency Fund',c:'var(--emg)',s:1},per:{n:'Personal Expenses',c:'var(--per)'},hh:{n:'Household Expenses',c:'var(--hh)'}};
 const CATS={inv:['Mutual Funds','Stocks','Gold / Commodities','Retirement / Pension','Savings Certificates','Other Investment'],emg:['Emergency Deposit','Medical Reserve','Job-Loss Buffer','Other Emergency'],per:['Petrol','Transport','Tickets','Subscription','Dining Out','Loan to Known','Credit Card Payment','Vehicle Maintenance','Other'],hh:['Rent','Fees','Monthly Grocery','Milk','Utilities','Daily Grocery','Other']};
 const DEF_AL={inv:30,emg:10,per:25,hh:35};
+const IC={inv:'📈',emg:'🛟',per:'🛍️',hh:'🏠'};
+const LOGO=`<svg width="84" height="84" viewBox="0 0 100 100" fill="none" stroke-width="12" stroke-linecap="round" transform="rotate(0)"><g transform="rotate(-90 50 50)">${['inv','emg','per','hh'].map((k,i)=>`<circle cx="50" cy="50" r="32" style="stroke:var(--${k})" stroke-dasharray="32 169.1" stroke-dashoffset="${-50.3*i-9}"/>`).join('')}</g><path d="M38 60 L48 49 L55 55 L66 41" stroke="#12403a" stroke-width="5" stroke-linejoin="round"/></svg>`;
 let S={users:[],cur:null,key:null,d:null,view:'dash',month:mk(new Date()),f:{m:mk(new Date()),b:'',q:'',s:'dd'},hid:0};
 const LS={get(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast('Could not write to device storage');return false}}};
 const fmt=n=>(S.d&&S.d.cur||'Rs')+' '+(Number.isFinite(n)?n:0).toLocaleString(undefined,{maximumFractionDigits:2});
@@ -113,21 +144,21 @@ const months=()=>[...new Set([...S.d.tx.map(t=>t.d.slice(0,7)),S.month])].sort()
 /* ---------- views ---------- */
 function loginView(){
  if(!(window.crypto&&crypto.subtle))return`<main><div class="card"><h2>Secure storage unavailable</h2><p class="lbl">This WebView does not expose the Web Crypto API. Serve the page from a secure origin (for example WebViewAssetLoader on https://appassets.androidplatform.net).</p></div></main>`;
- return`<header><h1>Cash Flow Tracker</h1></header><main>
+ return`<main><div class="brand">${LOGO}<h1>Cash Flow Tracker</h1><div class="lbl">Private. Encrypted. Offline.</div></div>
  <p class="lbl" style="margin:4px 2px 14px">Everything stays on this device, encrypted with your master password.</p>
  ${S.users.map(u=>`<button class="btn user" data-a="login" data-id="${esc(u.id)}"><span class="av">${esc(u.name.charAt(0).toUpperCase())}</span><span>${esc(u.name)}</span></button>`).join('')||'<div class="empty">No accounts yet. Create the first one.</div>'}
  <button class="btn p w" data-a="newacct">Create account</button>
  <button class="btn w" data-a="restore">Restore from backup file</button></main>`}
 function dashView(){const a=agg(S.month),d=S.d,bal=d.take-a.tot;
  const setup=d.take<=0?`<div class="card"><b>Set up your salary</b><p class="lbl">Add your take-home salary and allocation split to see budgets.</p><button class="btn p" data-a="nav" data-v="set">Open settings</button></div>`:'';
+ const R=80,C=2*Math.PI*R;let off=0;
+ const segs=a.tot>0?Object.keys(B).map(k=>{const l=a[k]/a.tot*C;const o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke-width="26" style="stroke:${B[k].c}" stroke-dasharray="${l} ${C-l}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"/>`;off+=l;return o}).join(''):'';
  const recent=d.tx.filter(t=>t.d.startsWith(S.month)).sort((x,y)=>y.d.localeCompare(x.d)).slice(0,5);
- return`<label>Month</label><input type="month" id="mo" value="${S.month}">${setup}
- <div class="grid"><div class="card"><div class="lbl">Take-home salary</div><div class="big">${fmt(d.take)}</div></div>
- <div class="card"><div class="lbl">Total outflow</div><div class="big">${fmt(a.tot)}</div></div>
- <div class="card"><div class="lbl">Available balance</div><div class="big ${bal<0?'neg':'pos'}">${fmt(bal)}</div></div>
- <div class="card"><div class="lbl">All-time savings</div><div class="big pos">${fmt(savingsAll())}</div></div></div>
- <div class="card">${Object.keys(B).map(k=>{const bg=budget(k),sp=a[k],p=bg>0?Math.min(100,sp/bg*100):(sp>0?100:0),over=sp>bg+0.005;
- return`<div style="margin-bottom:14px"><div class="bk"><span>${B[k].n} · ${d.al[k]}%</span><span class="${over?'neg':''}">${fmt(sp)} / ${fmt(bg)}</span></div><div class="bar"><i style="width:${p}%;background:${over?'var(--bad)':B[k].c}"></i></div></div>`}).join('')}</div>
+ return`<div class="mnav"><button class="ib" data-a="mshift" data-n="-1" aria-label="Previous month">‹</button><b>${monthLabel(S.month)}</b><button class="ib" data-a="mshift" data-n="1" aria-label="Next month">›</button></div>${setup}
+ <div class="donut"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke-width="26" style="stroke:var(--card2)"/>${segs}</svg><div class="dc"><div class="lbl">Available balance</div><div class="big ${bal<0?'neg':'pos'}">${fmt(bal)}</div><div class="lbl">Outflow ${fmt(a.tot)}</div></div></div>
+ <div class="grid"><div class="card"><div class="lbl">Take-home salary</div><div class="big">${fmt(d.take)}</div></div><div class="card"><div class="lbl">All-time savings</div><div class="big pos">${fmt(savingsAll())}</div></div></div>
+ <h2>Tap a bucket to add</h2><div class="tiles">${Object.keys(B).map(k=>{const bg=budget(k),sp=a[k],p=bg>0?Math.min(100,sp/bg*100):(sp>0?100:0),over=sp>bg+0.005;
+ return`<button class="tile" data-a="addtx" data-b="${k}"><div class="ic" style="background:${B[k].c}">${IC[k]}</div><div class="lbl">${B[k].n} · ${d.al[k]}%</div><div class="v ${over?'neg':''}">${fmt(sp)}</div><div class="lbl">of ${fmt(bg)}</div><div class="bar"><i style="width:${p}%;background:${over?'var(--bad)':B[k].c}"></i></div></button>`}).join('')}</div>
  <h2>Recent</h2><div class="card">${recent.length?recent.map(txRow).join(''):'<div class="empty">No transactions this month.</div>'}</div>`}
 function txRow(t){return`<div class="tx"><span class="dot" style="background:${B[t.b].c}"></span><div class="m"><b>${esc(t.c)}</b><small>${esc(t.d)} · ${B[t.b].n}${t.n?' · '+esc(t.n):''}</small></div><b class="${B[t.b].s?'pos':''}">${fmt(t.a)}</b><button class="ib" data-a="edittx" data-id="${esc(t.id)}" aria-label="Edit">✎</button></div>`}
 function txView(){const f=S.f;const ms=[['all','All months'],...months().map(m=>[m,monthLabel(m)])];
@@ -161,9 +192,9 @@ function render(){const app=$('#app');
  fillList();altot()}
 
 /* ---------- forms ---------- */
-function txForm(id){const t=id?S.d.tx.find(x=>x.id===id):null;const b=t?t.b:(S.f.b||'per');
- const body=`<label>Date</label><input type="date" id="f_d" value="${t?t.d:today()}"><label>Bucket</label><select id="f_b">${opts(Object.keys(B).map(k=>[k,B[k].n]),b)}</select>
- <label>Category</label><select id="f_c"></select><label>Amount (${esc(S.d.cur)})</label><input id="f_a" inputmode="decimal" value="${t?t.a:''}" placeholder="0.00"><label>Note (optional)</label><input id="f_n" maxlength="200" value="${t?esc(t.n):''}">
+function txForm(id,pre){const t=id?S.d.tx.find(x=>x.id===id):null;const b=t?t.b:(pre||S.f.b||'per');
+ const body=`<label>Amount (${esc(S.d.cur)})</label><input id="f_a" class="amt" inputmode="decimal" value="${t?t.a:''}" placeholder="0.00"><label>Date</label><input type="date" id="f_d" value="${t?t.d:today()}"><label>Bucket</label><select id="f_b">${opts(Object.keys(B).map(k=>[k,B[k].n]),b)}</select>
+ <label>Category</label><select id="f_c"></select><label>Note (optional)</label><input id="f_n" maxlength="200" value="${t?esc(t.n):''}">
  ${t?'<button class="btn d w" id="f_del" type="button">Delete transaction</button>':''}`;
  openForm(t?'Edit transaction':'Add transaction',body,'Save',()=>{
   const d=$('#f_d').value,a=num($('#f_a').value);if(!d){toast('Pick a date');return false}if(!(a>0)){toast('Enter an amount above 0');return false}
@@ -204,7 +235,7 @@ const A={
  nav:d=>{S.view=d.v;render();const m=$('#main');if(m)m.scrollTop=0},
  login:d=>login(d.id),newacct:newAcct,lock,
  restore:()=>{$('#file').click()},import:()=>{$('#file').click()},
- addtx:()=>txForm(),edittx:d=>txForm(d.id),export:exportBk,
+ addtx:d=>txForm(null,d.b),mshift:d=>{const p=S.month.split('-').map(Number),dt=new Date(p[0],p[1]-1+Number(d.n),1);S.month=mk(dt);render()},edittx:d=>txForm(d.id),export:exportBk,
  gomonth:d=>{S.f.m=d.m;S.view='tx';render()},
  savecfg:async()=>{const cur=$('#s_cur').value.trim()||'Rs',g=num($('#s_gross').value),t=num($('#s_take').value);
   if(g>0&&t>g){toast('Take-home cannot exceed gross');return}

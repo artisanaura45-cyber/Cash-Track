@@ -30,6 +30,10 @@ public class MainActivity extends Activity {
         // Blocks screenshots and hides the app preview in recents (financial data).
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         wv = new WebView(this);
+        wv.setBackgroundColor(0xFFF3F7F5);
+        getWindow().setStatusBarColor(0xFFCDEEE0);
+        wv.setSystemUiVisibility(android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        getWindow().setNavigationBarColor(0xFFF3F7F5);
         setContentView(wv);
         WebSettings s = wv.getSettings();
         s.setJavaScriptEnabled(true);
