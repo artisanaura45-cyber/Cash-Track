@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#cdeee0">
 <title>Cash Track</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cash Track">
 <style>
 :root{--bg:#f3f7f5;--card:#ffffff;--card2:#eaf1ee;--line:#d3dfd9;--tx:#14221f;--mut:#5b6e68;--acc:#0f8f6b;--acc2:#d7f1e6;--bad:#d64545;--inv:#7c5cf0;--emg:#f0a30a;--per:#e8466a;--hh:#1e9be0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -115,6 +121,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/,/g,''));return Number.isFinite(n)?n:0};
 const mk=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
 const today=()=>{const d=new Date();return mk(d)+'-'+String(d.getDate()).padStart(2,'0')};
+function monthRange(){const d=new Date(),cm=mk(d),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();return{cm,min:cm+'-01',max:cm+'-'+String(last).padStart(2,'0')}}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const B={inv:{n:'Investments',c:'var(--inv)',s:1},emg:{n:'Emergency Fund',c:'var(--emg)',s:1},per:{n:'Personal Expenses',c:'var(--per)'},hh:{n:'Household Expenses',c:'var(--hh)'}};
 const CATS={inv:['Mutual Funds','Stocks','Gold / Commodities','Retirement / Pension','Savings Certificates','Other Investment'],emg:['Emergency Deposit','Medical Reserve','Job-Loss Buffer','Other Emergency'],per:['Petrol','Transport','Tickets','Subscription','Dining Out','Loan to Known','Credit Card Payment','Vehicle Maintenance','Other'],hh:['Rent','Fees','Monthly Grocery','Milk','Utilities','Daily Grocery','Other']};
@@ -126,7 +133,7 @@ const LOGO_SRC='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK
 const LOGO=`<img src="${LOGO_SRC}" width="84" height="84" alt="Cash Track" style="display:block;border-radius:50%">`;
 const LOGO_SM=`<img src="${LOGO_SRC}" width="30" height="30" alt="Cash Track" style="display:block;border-radius:50%">`;
 const FOOT='<div class="foot"><span>Developed By Faran Sajid – Rights Reserved</span></div>';
-let S={users:[],cur:null,key:null,d:null,view:'dash',month:mk(new Date()),f:{m:mk(new Date()),b:'',q:'',s:'dd'},hid:0};
+let S={users:[],cur:null,key:null,d:null,view:'dash',month:mk(new Date()),f:{m:mk(new Date()),b:'',q:'',s:'dd'},hid:0,recOpen:{}};
 const LS={get(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast('Could not write to device storage');return false}}};
 const fmt=n=>{n=Number.isFinite(n)?n:0;const cur=(S.d&&S.d.cur)||'Rs';return(n<0?'-':'')+cur+' '+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2})};
 
@@ -166,6 +173,7 @@ function agg(m){const r={inv:0,emg:0,per:0,hh:0,tot:0};for(const t of S.d.tx)if(
 function passive(m){return(S.d.income||[]).filter(x=>m==='all'||x.d.startsWith(m)).reduce((s,x)=>s+x.a,0)}
 const budget=k=>S.d.take*S.d.al[k]/100;
 const savingsAll=()=>{const r=agg('all');return r.inv+r.emg};
+const savingsAllOne=k=>agg('all')[k];
 const months=()=>[...new Set([...S.d.tx.map(t=>t.d.slice(0,7)),...(S.d.income||[]).map(x=>x.d.slice(0,7)),S.month])].sort().reverse();
 
 /* ---------- views ---------- */
@@ -183,7 +191,7 @@ function dashView(){const a=agg(S.month),d=S.d,pin=passive(S.month),tinc=d.take+
  const segs=dtot>0?Object.keys(B).map((k,i)=>{const l=dvals[i]/dtot*C;const o=`<circle cx="100" cy="100" r="${R}" fill="none" stroke-width="26" style="stroke:${B[k].c}" stroke-dasharray="${l} ${C-l}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"/>`;off+=l;return o}).join(''):'';
  const recent=[...d.tx.filter(t=>t.d.startsWith(S.month)).map(t=>({...t,_t:'tx'})),...(d.income||[]).filter(x=>x.d.startsWith(S.month)).map(x=>({...x,_t:'inc'}))].sort((x,y)=>y.d.localeCompare(x.d)).slice(0,5);
  return`<div class="lbl" style="margin-bottom:10px">Welcome to Cash Track – Your personal financial tracker.</div>
- <div class="mnav"><button class="ib" data-a="mshift" data-n="-1" aria-label="Previous month">‹</button><b>${monthLabel(S.month)}</b><button class="ib" data-a="mshift" data-n="1" aria-label="Next month">›</button></div>${setup}
+ <div class="mnav"><button class="ib" data-a="mshift" data-n="-1" aria-label="Previous month">‹</button><b>${monthLabel(S.month)}</b><button class="ib" data-a="mshift" data-n="1" aria-label="Next month"${S.month>=monthRange().cm?' style="opacity:.35"':''}>›</button></div>${setup}
  <div class="donut"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="${R}" fill="none" stroke-width="26" style="stroke:var(--card2)"/>${segs}</svg><div class="dc"><div class="lbl">Available balance</div><div class="big ${bal<0?'neg':'pos'}">${fmt(bal)}</div><div class="lbl">Net outflow ${fmt(a.tot)}</div></div></div>
  <div class="grid"><div class="card"><div class="lbl">Income this month</div><div class="big">${fmt(tinc)}</div>${pin>0?`<div class="lbl">Salary ${fmt(d.take)} + Passive ${fmt(pin)}</div>`:''}</div><div class="card"><div class="lbl">All-time savings</div><div class="big pos">${fmt(savingsAll())}</div></div></div>
  <h2>Tap a bucket to add</h2><div class="tiles">${Object.keys(B).map(k=>{const bg=budget(k),sp=a[k],p=bg>0?Math.max(0,Math.min(100,sp/bg*100)):(sp>0?100:0),over=sp>bg+0.005;
@@ -201,28 +209,50 @@ function fillList(){const el=$('#txlist');if(!el)return;const f=S.f,q=f.q.trim()
  const cmp={dd:(x,y)=>y.d.localeCompare(x.d),da:(x,y)=>x.d.localeCompare(y.d),ad:(x,y)=>y.a-x.a,aa:(x,y)=>x.a-y.a}[f.s];l.sort(cmp);
  const tot=l.reduce((s,t)=>s+(t.k==='out'?-t.a:t.a),0);
  el.innerHTML=l.length?`<div class="lbl" style="margin-bottom:4px">${l.length} transaction${l.length>1?'s':''} · ${fmt(tot)}</div>`+l.map(txRow).join(''):'<div class="empty">No matching transactions.<br>Tap + to add one.</div>'}
-function recView(){const d=S.d;return months().map(m=>{const a=agg(m),pin=passive(m),tinc=d.take+pin,bal=tinc-a.tot;
+function daySpend(dateStr){let v=0;for(const t of S.d.tx){if(t.d!==dateStr)continue;if(t.b==='per'||t.b==='hh')v+=t.a;else if(B[t.b].s&&t.k==='out')v+=t.a}return v}
+function weeksOfMonth(m){const p=m.split('-').map(Number),y=p[0],mo=p[1],dim=new Date(y,mo,0).getDate();
+ const cells=[];for(let day=1;day<=dim;day++){const dt=new Date(y,mo-1,day);cells.push({day,dow:dt.getDay(),date:m+'-'+String(day).padStart(2,'0')})}
+ const weeks=[];let week=new Array(7).fill(null);
+ cells.forEach(c=>{week[c.dow]=c;if(c.dow===6){weeks.push(week);week=new Array(7).fill(null)}});
+ if(week.some(x=>x))weeks.push(week);
+ return weeks}
+function dailyBreakdown(m){const weeks=weeksOfMonth(m);const cells=weeks.flat().filter(Boolean);
+ const amts=cells.map(c=>daySpend(c.date));const max=Math.max(1,...amts);
+ const dowLbl=['S','M','T','W','T','F','S'];
+ let best=null;cells.forEach(c=>{const amt=daySpend(c.date);if(amt>0&&(!best||amt>best.amt))best={day:c.day,amt}});
+ return`<div class="card" style="margin-top:8px">
+ <div class="lbl" style="display:flex;margin-bottom:8px">${dowLbl.map(l=>`<span style="flex:1;text-align:center">${l}</span>`).join('')}</div>
+ ${weeks.map(week=>`<div style="display:flex;align-items:flex-end;gap:4px;height:66px;margin-bottom:6px">${week.map(c=>{
+  if(!c)return'<div style="flex:1"></div>';
+  const amt=daySpend(c.date),h=amt>0?Math.max(6,Math.round(amt/max*52)):2,top=best&&c.day===best.day&&amt===best.amt;
+  return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%"><div title="${esc(fmt(amt))}" style="width:70%;height:${h}px;background:${top?'var(--bad)':'var(--hh)'};border-radius:4px 4px 0 0"></div><div class="lbl" style="font-size:.62rem;margin-top:3px">${c.day}</div></div>`
+ }).join('')}</div>`).join('')}
+ <div class="lbl" style="margin-top:2px">${best?`Highest-spend day: ${best.day} ${monthLabel(m)} · ${fmt(best.amt)}`:'No spending logged yet.'}</div>
+ </div>`}
+function recView(){const d=S.d;return months().map(m=>{const a=agg(m),pin=passive(m),tinc=d.take+pin,bal=tinc-a.tot,open=!!S.recOpen[m];
  return`<div class="card"><div class="bk"><b>${monthLabel(m)}</b><button class="chip" style="border:0" data-a="gomonth" data-m="${m}">View transactions</button></div>
  <div class="grid" style="margin:10px 0 4px"><div><div class="lbl">Net outflow</div><b>${fmt(a.tot)}</b></div><div><div class="lbl">Balance</div><b class="${bal<0?'neg':'pos'}">${fmt(bal)}</b></div><div><div class="lbl">Saved</div><b class="pos">${fmt(a.inv+a.emg)}</b></div><div><div class="lbl">Income</div><b>${fmt(tinc)}</b></div></div>
  ${pin>0?`<div class="lbl" style="margin-bottom:6px">Includes passive income of ${fmt(pin)}</div>`:''}
- ${Object.keys(B).map(k=>`<div class="bk" style="margin-top:6px"><span><span class="dot" style="display:inline-block;background:${B[k].c};margin-right:6px"></span>${B[k].n}</span><span class="${a[k]>budget(k)+0.005?'neg':''}">${fmt(a[k])} / ${fmt(budget(k))}</span></div>`).join('')}</div>`}).join('')}
+ ${Object.keys(B).map(k=>`<div class="bk" style="margin-top:6px"><span><span class="dot" style="display:inline-block;background:${B[k].c};margin-right:6px"></span>${B[k].n}</span><span class="${a[k]>budget(k)+0.005?'neg':''}">${fmt(a[k])} / ${fmt(budget(k))}</span></div>`).join('')}
+ <button class="btn w" style="margin-top:10px" data-a="toggledetail" data-m="${m}">${open?'Hide daily breakdown ▴':'View daily breakdown ▾'}</button></div>
+ ${open?dailyBreakdown(m):''}`}).join('')}
 function altot(){let s=0;document.querySelectorAll('[data-al]').forEach(i=>s+=num(i.value));s=Math.round(s*1000)/1000;const e=$('#altot'),b=$('#savecfg');if(e){e.textContent=s+'%';e.className=s===100?'pos':'neg'}if(b)b.disabled=s!==100}
 function render(){const app=$('#app');
  if(!S.cur){app.innerHTML=loginView();return}
- const T={dash:['Dashboard',dashView],tx:['Transactions',txView],inc:['Income',incView],rec:['Monthly records',recView]};
- const nv=[['dash','◉','Home'],['tx','⇅','Spending'],['inc','💰','Income'],['rec','▤','Records']];
+ const T={dash:['Dashboard',dashView],tx:['Transactions',txView],inc:['Income',incView],sav:['Savings',savingsView],rec:['Monthly records',recView],set:['Settings',setView]};
+ const nv=[['dash','◉','Home'],['tx','⇅','Spending'],['inc','💰','Income'],['sav','🏦','Savings'],['rec','▤','Records'],['set','⚙','Settings']];
  const headHTML=S.view==='dash'?`<div class="dhead">${LOGO_SM}<b>Cash Track</b></div><span class="chip chip-abs">${esc(S.cur.name)}</span>`:`<h1>${T[S.view][0]}</h1><span class="chip">${esc(S.cur.name)}</span>`;
  app.innerHTML=`<header>${headHTML}</header><main id="main">${T[S.view][1]()}${FOOT}</main><nav>${nv.map(([v,i,l])=>`<button class="${S.view===v?'on':''}" data-a="nav" data-v="${v}"><span>${i}</span>${l}</button>`).join('')}</nav>`;
  fillList();altot()}
 
 /* ---------- forms ---------- */
 function txForm(id,pre){const t=id?S.d.tx.find(x=>x.id===id):null;const b=t?t.b:(pre||S.f.b||'per');
- const body=`<label>Amount (${esc(S.d.cur)})</label><input id="f_a" class="amt" inputmode="decimal" value="${t?t.a:''}" placeholder="0.00"><label>Date</label><input type="date" id="f_d" value="${t?t.d:today()}"><label>Bucket</label><select id="f_b">${opts(Object.keys(B).map(k=>[k,B[k].n]),b)}</select>
+ const dr=monthRange();const body=`<label>Amount (${esc(S.d.cur)})</label><input id="f_a" class="amt" inputmode="decimal" value="${t?t.a:''}" placeholder="0.00"><label>Date</label><input type="date" id="f_d" value="${t?t.d:today()}" min="${dr.min}" max="${dr.max}"><label>Bucket</label><select id="f_b">${opts(Object.keys(B).map(k=>[k,B[k].n]),b)}</select>
  <div id="f_kwrap" style="display:none"><label>Type</label><select id="f_k"><option value="add">Add to savings</option><option value="out">Withdraw from savings</option></select></div>
  <label>Category</label><select id="f_c"></select><label>Note (optional)</label><input id="f_n" maxlength="200" value="${t?esc(t.n):''}">
  ${t?'<button class="btn d w" id="f_del" type="button">Delete transaction</button>':''}`;
  openForm(t?'Edit transaction':'Add transaction',body,'Save',()=>{
-  const d=$('#f_d').value,a=num($('#f_a').value),bb=$('#f_b').value;if(!d){toast('Pick a date');return false}if(!(a>0)){toast('Enter an amount above 0');return false}
+  const d=$('#f_d').value,a=num($('#f_a').value),bb=$('#f_b').value;if(!d){toast('Pick a date');return false}if(!d.startsWith(monthRange().cm)){toast('Only dates in the current month can be used');return false}if(!(a>0)){toast('Enter an amount above 0');return false}
   const kk=(B[bb].s&&$('#f_k'))?$('#f_k').value:'add';
   const r={id:t?t.id:uid(),d,b:bb,c:$('#f_c').value,a:Math.round(a*100)/100,n:$('#f_n').value.trim(),k:kk};
   if(t)S.d.tx[S.d.tx.findIndex(x=>x.id===t.id)]=r;else S.d.tx.push(r);save();render();toast('Saved')});
@@ -231,10 +261,10 @@ function txForm(id,pre){const t=id?S.d.tx.find(x=>x.id===id):null;const b=t?t.b:
 function fillCats(sel){const b=$('#f_b').value,l=CATS[b].slice();if(sel&&!l.includes(sel))l.push(sel);$('#f_c').innerHTML=opts(l.map(x=>[x,x]),sel||l[0])}
 function toggleKind(sel){const b=$('#f_b'),w=$('#f_kwrap');if(!b||!w)return;const show=B[b.value].s;w.style.display=show?'':'none';if(show&&sel)$('#f_k').value=sel}
 function incForm(id){const x=id?(S.d.income||[]).find(y=>y.id===id):null;
- const body=`<label>Amount (${esc(S.d.cur)})</label><input id="f_a" class="amt" inputmode="decimal" value="${x?x.a:''}" placeholder="0.00"><label>Date</label><input type="date" id="f_d" value="${x?x.d:today()}"><label>Source</label><select id="f_c">${opts(INC_CATS.map(c=>[c,c]),x?x.c:INC_CATS[0])}</select><label>Note (optional)</label><input id="f_n" maxlength="200" value="${x?esc(x.n):''}">
+ const dr=monthRange();const body=`<label>Amount (${esc(S.d.cur)})</label><input id="f_a" class="amt" inputmode="decimal" value="${x?x.a:''}" placeholder="0.00"><label>Date</label><input type="date" id="f_d" value="${x?x.d:today()}" min="${dr.min}" max="${dr.max}"><label>Source</label><select id="f_c">${opts(INC_CATS.map(c=>[c,c]),x?x.c:INC_CATS[0])}</select><label>Note (optional)</label><input id="f_n" maxlength="200" value="${x?esc(x.n):''}">
  ${x?'<button class="btn d w" id="f_del" type="button">Delete entry</button>':''}`;
  openForm(x?'Edit income':'Add passive income',body,'Save',()=>{
-  const d=$('#f_d').value,a=num($('#f_a').value);if(!d){toast('Pick a date');return false}if(!(a>0)){toast('Enter an amount above 0');return false}
+  const d=$('#f_d').value,a=num($('#f_a').value);if(!d){toast('Pick a date');return false}if(!d.startsWith(monthRange().cm)){toast('Only dates in the current month can be used');return false}if(!(a>0)){toast('Enter an amount above 0');return false}
   const r={id:x?x.id:uid(),d,c:$('#f_c').value,a:Math.round(a*100)/100,n:$('#f_n').value.trim()};
   if(!S.d.income)S.d.income=[];
   if(x)S.d.income[S.d.income.findIndex(y=>y.id===x.id)]=r;else S.d.income.push(r);save();render();toast('Saved')});
@@ -251,10 +281,16 @@ function incView(){const ms=[['all','All months'],...months().map(m=>[m,monthLab
  <label>Month</label><select id="im">${opts(ms,sel)}</select>
  ${sel!=='all'?`<div class="card"><div class="bk"><span>Salary</span><b>${fmt(d.take)}</b></div><div class="bk" style="margin-top:6px"><span>Passive income</span><b>${fmt(tot)}</b></div><div class="bk" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)"><span>Total income</span><b class="pos">${fmt(d.take+tot)}</b></div></div>`:''}
  <h2>Passive income</h2>
- <div class="card">${l.length?`<div class="lbl" style="margin-bottom:4px">${l.length} entr${l.length>1?'ies':'y'} · ${fmt(tot)}</div>`+l.map(incRow).join(''):'<div class="empty">No passive income logged for this period.<br>Tap + to add one.</div>'}</div><button class="fab" data-a="addinc" aria-label="Add income">+</button>
- <h2>Backup</h2><div class="card"><p class="lbl">Backups are encrypted with this account's master password.</p>
+ <div class="card">${l.length?`<div class="lbl" style="margin-bottom:4px">${l.length} entr${l.length>1?'ies':'y'} · ${fmt(tot)}</div>`+l.map(incRow).join(''):'<div class="empty">No passive income logged for this period.<br>Tap + to add one.</div>'}</div><button class="fab" data-a="addinc" aria-label="Add income">+</button>`}
+function setView(){return`<h2>Backup</h2><div class="card"><p class="lbl">Backups are encrypted with this account's master password.</p>
  <button class="btn w" data-a="export">Export encrypted backup</button><button class="btn w" data-a="import">Import backup</button></div>
  <h2>Account</h2><div class="card"><b>${esc(S.cur.name)}</b><button class="btn w" data-a="lock">Lock</button><button class="btn d w" data-a="delacct">Delete this account</button></div>`}
+function savingsView(){const months_=months();
+ const rows=k=>months_.map(m=>{const v=agg(m)[k];return{m,v}}).filter(r=>r.v!==0);
+ const allTot=k=>savingsAllOne(k);
+ return Object.keys(B).filter(k=>B[k].s).map(k=>{const rs=rows(k);
+ return`<div class="card"><div class="bk"><b>${B[k].n}</b><b class="pos">${fmt(allTot(k))}</b></div><div class="lbl">All-time total</div>
+ ${rs.length?'<div style="margin-top:12px">'+rs.map(r=>`<div class="bk" style="margin-top:6px"><span>${monthLabel(r.m)}</span><b class="${r.v<0?'pos':''}">${fmt(r.v)}</b></div>`).join('')+'</div>':'<div class="empty" style="margin-top:10px">No activity yet.</div>'}</div>`}).join('')}
 function pwdBody(withName,confirm){const pa=confirm?' inputmode="numeric" pattern="[0-9]*" maxlength="8"':'';return`${withName?'<label>Account name</label><input id="p_n" maxlength="30" autocomplete="off">':''}<label>${confirm?'Create a PIN (4+ digits)':'PIN / password'}</label><input id="p_p" type="password" autocomplete="off"${pa}>${confirm?'<label>Confirm PIN</label><input id="p_c" type="password" autocomplete="off"'+pa+'><p class="lbl">Minimum 4 digits, numbers only. There is no way to recover a forgotten PIN.</p>':''}`}
 function newAcct(){openForm('Create account',pwdBody(true,true),'Create',async()=>{
  const n=$('#p_n').value.trim(),p=$('#p_p').value;
@@ -276,7 +312,7 @@ async function verifyPassword(p){try{const key=await derive(p,unb64(S.cur.salt),
 function requirePassword(action){openForm('Confirm password','<p class="lbl">Re-enter your master password to continue.</p><label>Master password</label><input id="p_p" type="password" autocomplete="off">','Confirm',async()=>{
  const p=$('#p_p').value;if(!p){toast('Enter your password');return false}
  const ok=await verifyPassword(p);if(!ok){toast('Incorrect password');return false}
- action()});$('#p_p').addEventListener('keydown',e=>{if(e.key==='Enter')$('#mok').click()})}
+ closeM();action();return false});$('#p_p').addEventListener('keydown',e=>{if(e.key==='Enter')$('#mok').click()})}
 async function exportBk(){await save();const u=S.cur,v=LS.get('pcft_v_'+u.id);if(!v){toast('Nothing to export');return}
  const o={format:'PCFT_BACKUP_V2',exported:new Date().toISOString(),name:u.name,kdf:'PBKDF2-SHA256',it:u.it,salt:u.salt,alg:'AES-GCM-256',iv:v.iv,ct:v.ct};
  LS.set('pcft_lastbk_'+u.id,new Date().toISOString());
@@ -296,10 +332,11 @@ const A={
  nav:d=>{S.view=d.v;render();const m=$('#main');if(m)m.scrollTop=0},
  login:d=>login(d.id),newacct:newAcct,lock,
  restore:()=>{$('#file').click()},import:()=>{$('#file').click()},
- addtx:d=>txForm(null,d.b),mshift:d=>{const p=S.month.split('-').map(Number),dt=new Date(p[0],p[1]-1+Number(d.n),1);S.month=mk(dt);render()},
+ addtx:d=>txForm(null,d.b),mshift:d=>{const n=Number(d.n),p=S.month.split('-').map(Number),dt=new Date(p[0],p[1]-1+n,1),nm=mk(dt);if(n>0&&nm>monthRange().cm){toast('Future months are not available yet');return}S.month=nm;render()},
  edittx:d=>requirePassword(()=>txForm(d.id)),export:exportBk,
  addinc:()=>incForm(),editinc:d=>requirePassword(()=>incForm(d.id)),
  gomonth:d=>{S.f.m=d.m;S.view='tx';render()},
+ toggledetail:d=>{S.recOpen[d.m]=!S.recOpen[d.m];render()},
  savecfg:()=>{const run=async()=>{const cur=$('#s_cur').value.trim()||'Rs',g=num($('#s_gross').value),t=num($('#s_take').value);
   if(g>0&&t>g){toast('Take-home cannot exceed gross');return}
   const al={};let s=0;document.querySelectorAll('[data-al]').forEach(i=>{al[i.dataset.al]=Math.max(0,num(i.value));s+=al[i.dataset.al]});
