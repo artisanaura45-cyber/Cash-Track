@@ -27,8 +27,6 @@ public class MainActivity extends Activity {
 
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
-        // Blocks screenshots and hides the app preview in recents (financial data).
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         wv = new WebView(this);
         wv.setBackgroundColor(0xFFF3F7F5);
         getWindow().setStatusBarColor(0xFFCDEEE0);
